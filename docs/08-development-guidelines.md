@@ -1001,7 +1001,7 @@ export class EngineTeardownService {
 
 **Causes & Solutions:**
 1. **Chrome/Puppeteer issue**
-   - Ensure Chromium is installed: `which chromium`
+   - Ensure official Chrome is installed: `ls /usr/local/bin/puppeteer-chrome`
    - Check Puppeteer args: `--no-sandbox --disable-setuid-sandbox`
 
 2. **Previous session data corrupted**

@@ -333,9 +333,13 @@ specific failure (Chromium can't resolve its home directory on a read-only rootf
 immediately above this one for the fix. The bundled image already handles this; it only resurfaces on a
 custom container that drops the `XDG_CONFIG_HOME` / `XDG_CACHE_HOME` setup or the writable `/tmp` tmpfs.
 
+**Cause D — Debian 12 OS Chromium SIGTRAP in non-root Pods.**
+If `Code: null` happens on Kubernetes, and the host kernel logs or `dmesg` shows `Trace/breakpoint trap (core dumped)` with exit code 133, the underlying Debian 12 OS `chromium` package has crashed due to strict non-root or seccomp constraints (even with `--no-zygote` or `Unconfined` seccomp). 
+*Fix:* Do not use the `chromium` package from Debian's `apt`. Instead, download the official Google Chrome binary via Puppeteer during the Docker build (`npx puppeteer browsers install chrome`) and point `PUPPETEER_EXECUTABLE_PATH` to it. The official `Dockerfile` in this repo has been updated to use this robust approach.
+
 **Quick triage:** run `docker stats openwa-api`, click **Start**, and watch which resource spikes toward its
 limit the instant before the failure — that tells you A vs B. If neither moves and you see the crashpad
-`--database` line, it's C.
+`--database` line, it's C. If running in K8s as non-root with the Debian `chromium` package, it is likely D.
 
 ### Issue: Frequent Disconnections
 

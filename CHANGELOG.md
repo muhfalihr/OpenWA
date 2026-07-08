@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Debian Chromium SIGTRAP crash in Kubernetes.** The `Dockerfile` previously installed the OS-level `chromium` package from Debian 12. When run as a non-root user in strict Docker/Kubernetes environments, this package consistently crashed at startup with `Code: null` and `Trace/breakpoint trap (core dumped)`. The `Dockerfile` has been rewritten to omit the Debian package and instead download the **official Google Chrome binary** via Puppeteer during the build phase. This resolves the persistent browser launch failures on restricted environments without requiring insecure workarounds like `--no-zygote` or disabling Seccomp/AppArmor.
+
 ### Added
 
 - **Redis authentication via username.** Added support for `REDIS_USERNAME` to configure the Redis cache connection and BullMQ queue connections that require a username. Thanks @muhfalihr.

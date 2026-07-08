@@ -51,9 +51,8 @@ RUN npm run build
 # Runtime stage
 FROM node:22-slim
 
-# Install Chrome dependencies
+# Install Chrome dependencies (avoid Debian's chromium package due to SIGTRAP in non-root)
 RUN apt-get update && apt-get install -y \
-    chromium \
     curl \
     fonts-ipafont-gothic \
     fonts-wqy-zenhei \
@@ -61,12 +60,24 @@ RUN apt-get update && apt-get install -y \
     fonts-kacst \
     fonts-freefont-ttf \
     libxss1 \
+    libnss3 \
+    libnspr4 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Set Chrome path for Puppeteer
+# Set Puppeteer skip download (we install it dynamically later)
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Create app directory
 WORKDIR /app
@@ -75,13 +86,20 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
+# Download official Chrome binary via Puppeteer and point ENV to it
+RUN mkdir -p /opt/puppeteer && \
+    PUPPETEER_CACHE_DIR=/opt/puppeteer npx puppeteer browsers install chrome && \
+    ln -s $(find /opt/puppeteer/chrome/linux-*/chrome-linux64/chrome | head -n 1) /usr/local/bin/puppeteer-chrome
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/local/bin/puppeteer-chrome
+
 # Copy build output
 COPY --from=build /app/dist ./dist
 
 # Create non-root user
 RUN groupadd -r openwa && useradd -r -g openwa openwa
-RUN chown -R openwa:openwa /app
+RUN chown -R openwa:openwa /app /opt/puppeteer
 USER openwa
+
 
 # Expose port
 EXPOSE 2785

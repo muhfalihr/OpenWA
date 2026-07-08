@@ -45,9 +45,8 @@ RUN npm run build && npm run dashboard:ci -- --include=dev && npm run dashboard:
 # ===== Stage 2: Production =====
 FROM docker.io/node:22-slim AS production
 
-# Install Chrome/Chromium and required dependencies
+# Install required dependencies for Chrome (removing broken Debian chromium package)
 RUN apt-get update && apt-get install -y \
-    chromium \
     fonts-liberation \
     libappindicator3-1 \
     libasound2 \
@@ -71,8 +70,7 @@ RUN apt-get update && apt-get install -y \
     procps \
     && rm -rf /var/lib/apt/lists/*
 
-# Set Chrome executable path for Puppeteer
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+# Set Puppeteer to skip automatic download during npm install (we download it explicitly below)
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Create app user for security
@@ -85,6 +83,18 @@ COPY package*.json ./
 
 # Install production dependencies only
 RUN npm ci --omit=dev && npm cache clean --force
+
+# Download the official Chrome binary via Puppeteer and set permissions
+RUN mkdir -p /opt/puppeteer && \
+    PUPPETEER_CACHE_DIR=/opt/puppeteer npx puppeteer browsers install chrome && \
+    chown -R openwa:openwa /opt/puppeteer
+
+# Point Puppeteer to the downloaded Chrome binary. The path has the chrome version inside it.
+# Instead of hardcoding, we use a wildcard path inside a wrapper script or just dynamically set it at runtime.
+# Since ENV doesn't support globbing easily, we will dynamically find it in the docker-entrypoint.sh later,
+# OR we can just link it to a static path during build.
+RUN ln -s $(find /opt/puppeteer/chrome/linux-*/chrome-linux64/chrome | head -n 1) /usr/local/bin/puppeteer-chrome
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/local/bin/puppeteer-chrome
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
