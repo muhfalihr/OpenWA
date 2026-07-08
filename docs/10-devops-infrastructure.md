@@ -86,9 +86,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Download official Chrome binary via Puppeteer and point ENV to it
+# Download Chrome for Testing via Puppeteer and point ENV to it
 RUN mkdir -p /opt/puppeteer && \
-    PUPPETEER_CACHE_DIR=/opt/puppeteer npx puppeteer browsers install chrome && \
+    PUPPETEER_CACHE_DIR=/opt/puppeteer ./node_modules/.bin/puppeteer browsers install 'chrome@126.0.6478.126' && \
     ln -s $(find /opt/puppeteer/chrome/linux-*/chrome-linux64/chrome | head -n 1) /usr/local/bin/puppeteer-chrome
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/local/bin/puppeteer-chrome
 

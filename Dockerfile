@@ -84,9 +84,9 @@ COPY package*.json ./
 # Install production dependencies only
 RUN npm ci --omit=dev && npm cache clean --force
 
-# Download the official Chrome binary via Puppeteer and set permissions
+# Download Chrome for Testing via Puppeteer and set permissions
 RUN mkdir -p /opt/puppeteer && \
-    PUPPETEER_CACHE_DIR=/opt/puppeteer npx puppeteer browsers install chrome && \
+    PUPPETEER_CACHE_DIR=/opt/puppeteer ./node_modules/.bin/puppeteer browsers install 'chrome@126.0.6478.126' && \
     chown -R openwa:openwa /opt/puppeteer
 
 # Point Puppeteer to the downloaded Chrome binary. The path has the chrome version inside it.
