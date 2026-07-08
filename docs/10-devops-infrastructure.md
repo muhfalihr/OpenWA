@@ -86,10 +86,15 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
+# NOTE: Chrome for Testing has no linux-arm64 build, so this example targets linux/amd64.
+# For arm64, install Debian's `chromium` package and point PUPPETEER_EXECUTABLE_PATH to
+# /usr/bin/chromium — see the repo's Dockerfile for the mixed multi-arch build.
 # Download Chrome for Testing via Puppeteer and point ENV to it
 RUN mkdir -p /opt/puppeteer && \
-    PUPPETEER_CACHE_DIR=/opt/puppeteer ./node_modules/.bin/puppeteer browsers install 'chrome@126.0.6478.126' && \
-    ln -s $(find /opt/puppeteer/chrome/linux-*/chrome-linux64/chrome | head -n 1) /usr/local/bin/puppeteer-chrome
+    PUPPETEER_CACHE_DIR=/opt/puppeteer ./node_modules/.bin/puppeteer browsers install 'chrome@146.0.7680.31' && \
+    chrome_path=$(find /opt/puppeteer/chrome/linux*/chrome-linux64/chrome | head -n 1) && \
+    test -n "$chrome_path" && \
+    ln -s "$chrome_path" /usr/local/bin/puppeteer-chrome
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/local/bin/puppeteer-chrome
 
 # Copy build output
