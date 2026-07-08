@@ -1,0 +1,22 @@
+## Description
+Added support for Redis authentication via username. This allows the application to connect to modern managed Redis services (such as those using Redis ACLs) that require both a username and password.
+
+The username is retrieved from the `REDIS_USERNAME` environment variable, securely mapped through `ConfigService` into the global configuration, and passed to the `ioredis` instance during initialization.
+I have also added this variable to `.env.example` and documented the update in `CHANGELOG.md`.
+
+## Type of Change
+- [ ] Bug fix
+- [x] New feature
+- [ ] Breaking change
+- [x] Documentation update
+
+## Checklist
+- [ ] Tests added/updated
+- [x] Documentation updated
+- [x] Lint passes
+- [x] Self-reviewed
+
+## Screenshots (if applicable)
+
+## Related Issues
+Closes #[INSERT_ISSUE_NUMBER]
